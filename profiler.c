@@ -44,29 +44,30 @@ nonyield_t poll_for_profile_and_serialize(profiler_t *prof) {
     WRITE_OUT_MAGIC(prof->serialoutfd);
 
     do {
-        if ((rcvlen = RECEIVE_MESSAGE(prof->relegatemq, &pinfo)) > 0)
+        if (MESSAGE_RECEIVED)
             write(prof->serialoutfd, &pinfo, rcvlen);
-    } while (!TERM_REQUESTED(pinfo.id));
-    
+    } while (!TERM_REQUESTED);
+
     close(prof->serialoutfd);
     mq_close(prof->relegatemq);
     exit(EXIT_SUCCESS);
 }
 
 nonyield_t poll_for_info_and_profile(profiler_t *prof) {
+    volatile bitmask_t bitmask = 0;
     ssize_t rcvlen = 0;
     profinfo_t pinfo = (profinfo_t) { 0 };
-    elapsed_t currelapse = 0, lastelapse = 0;
+    elapsed_t curlapse = 0, prvlapse = 0;
 
     do {
-        if ((rcvlen = RECEIVE_MESSAGE(prof->relegatemq, &pinfo)) > 0) {
-            currelapse = get_elapsed_since();
-            pinfo.id = signalinfo.si_value.sival_int;
-            pinfo.elapsed = currelapse - lastelapse;
-            lastelapse = currelapse;
+        if (MESSAGE_RECEIVED) {
+            curlapse = get_elapsed_since();
+            pinfo.elapsed = (curlapse - prvlapse) & bitmask;
+            prvlapse = curlapse;
+            bitmask = QWORD_MAX;
             SEND_MESSAGE(prof->relegatemq, &pinfo);
         }
-    } while (!TERM_REQUESTED(pinfo.id));
+    } while (!TERM_REQUESTED);
 
     close(prof->serialoutfd);
     mq_close(prof->relegatemq);
@@ -97,7 +98,7 @@ yield_t init_profiler(profiler_t *prof, char *profname, char *outpath) {
 yield_t queue_message_to_profiler(profiler_t *prof, char *markerid) {
     yield_t yield;
     markerid_t qwdid = byteptr_to_qword(markerid);
-    profinfo_t pinfo = (profinfo_t){ .id = qwdid, .flags = flags };
+    profinfo_t pinfo = (profinfo_t){ .id = qwdid };
     YIELD_IF_ERR(SEND_MESSAGE(prof->relegatemq, &pinfo));
     return RETURN_SUCCESS;
 }
