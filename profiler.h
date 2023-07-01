@@ -25,7 +25,7 @@
   mq_send(CHANNEL, (char *)BUFFER, sizeof(profinfo_t), NULL)
 #define RECEIVE_MESSAGE(CHANNEL, BUFFER)                                       \
   mq_receive(CHANNEL, (char *)BUFFER, sizeof(profinfo_t), NULL)
-#define WRITE_OUT_MAGIC(FD)                                                    \
+#define EMIT_SENTINEL(FD)                                                    \
   do {                                                                         \
     const unsigned long BINFILE_MAGIC_VAR = BINFILE_MAGIC;                     \
     write(FD, &BINFILE_MAGIC_VAR, sizeof(unsigned long));                      \
