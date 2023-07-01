@@ -17,18 +17,18 @@
 #define RETURN_SUCCESS 0
 #define RETURN_FAILURE -127
 
-#ifndef BINFILE_MAGIC
-#define BINFILE_MAGIC 0x150c55b5052464cf
+#ifndef BINFILE_SENTINEL
+#define BINFILE_SENTINEL 0x150c55b5052464cf
 #endif
 
 #define SEND_MESSAGE(CHANNEL, BUFFER)                                          \
   mq_send(CHANNEL, (char *)BUFFER, sizeof(profinfo_t), NULL)
 #define RECEIVE_MESSAGE(CHANNEL, BUFFER)                                       \
   mq_receive(CHANNEL, (char *)BUFFER, sizeof(profinfo_t), NULL)
-#define EMIT_SENTINEL(FD)                                                    \
+#define EMIT_SENTINEL(FD)                                                      \
   do {                                                                         \
-    const unsigned long BINFILE_MAGIC_VAR = BINFILE_MAGIC;                     \
-    write(FD, &BINFILE_MAGIC_VAR, sizeof(unsigned long));                      \
+    QWORD sntnl = BINFILE_SENTINEL;                                            \
+    write(FD, &sntnl, sizeof(QWORD));                                          \
   } while (0)
 #define YIELD_IF_ERR(...)                                                      \
   if ((yield = __VA_ARGS__) < 0)                                               \
