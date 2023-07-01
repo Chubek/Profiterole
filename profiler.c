@@ -41,13 +41,14 @@ markerid_t byteptr_to_qword(char *markerid) {
 nonyield_t poll_for_profile_and_serialize(profiler_t *prof) {
     ssize_t rcvlen = 0;
     profinfo_t pinfo = (profinfo_t) { 0 };
-    WRITE_OUT_MAGIC(prof->serialoutfd);
+    EMIT_SENTINEL(prof->serialoutfd);
 
     do {
         if (MESSAGE_RECEIVED)
             write(prof->serialoutfd, &pinfo, rcvlen);
     } while (!TERM_REQUESTED);
 
+    EMIT_SENTINEL(prof->serialoutfd);
     close(prof->serialoutfd);
     mq_close(prof->relegatemq);
     exit(EXIT_SUCCESS);
