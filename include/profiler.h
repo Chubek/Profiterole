@@ -11,34 +11,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
-#include <times.h>
+#include <sys/times.h>
 #include <unistd.h>
-
-#define QWORD unsigned long
-#define DWORD int
-#define NILTY void
+#include "roulettemacs.h"
 
 #define QWORD_MAX 0xffffffffffffffff
 
 #define RETURN_SUCCESS 1
 #define RETURN_FAILURE 0
 
-#ifndef BINFILE_SENTINEL
 #define BINFILE_SENTINEL 0x150c55b5052464cf
-#endif
 
-#define SEND_MESSAGE(CHANNEL, BUFFER)                                          \
-  mq_send(CHANNEL, (char *)BUFFER, sizeof(profinfo_t), NULL)
-#define RECEIVE_MESSAGE(CHANNEL, BUFFER)                                       \
-  mq_receive(CHANNEL, (char *)BUFFER, sizeof(profinfo_t), NULL)
-#define EMIT_SENTINEL(FD)                                                      \
-  do {                                                                         \
-    QWORD sntnl = BINFILE_SENTINEL;                                            \
-    write(FD, &sntnl, sizeof(QWORD));                                          \
-  } while (0)
-#define YIELD_IF_ERR(...)                                                      \
-  if ((yield = __VA_ARGS__) < 0)                                               \
-  return yield
 #define MESSAGE_RECEIVED                                                       \
   (rcvlen = RECEIVE_MESSAGE(prof->relegatemq, &pinfo)) == sizeof(profinfo_t)
 #define TERM_REQUESTED (pinfo.id == prof->sentinel)
@@ -50,8 +33,9 @@
 #define CLB_ELAPSE "rax", "rdx"
 #define CLB_IDQWRD "r11"
 #elif defined(__aarch64__) && !defined(NO_ASM_FUNC)
-#define ASM_ELAPSE "mrs %0, cntvct_el0"
-#define ASM_IDQWRD "ldr %0, [%1]"
+#define ASM_ELAPSE "mrs %0, cntvct_el0;"
+#define ASM_BUF2QW "ldr %0, [%1];"
+#define ADM_QW2BUF "str %0, [%1];"
 #define CLB_ELAPSE "xzr"
 #define CLB_IDQWRD "xzr"
 #elif !defined(NO_ASM_FUNC)
@@ -63,13 +47,24 @@
 #error "In neither case, please pass NO_ASM_FUNC"
 #endif
 
-typedef QWORD sentinel_t;
-typedef QWORD markerid_t;
-typedef QWORD elapsed_t;
-typedef QWORD snl_t;
-typedef DWORD fld_t;
-typedef DWORD yield_t;
-typedef NILTY nonyield_t;
+#if defined(NO_ASM_FUNC) && defined(USE_MEMCPY)
+#define MEMCOPYFN memcpy
+#elif defined(NO_ASM_FUNC) && (defined(USE_MEMMOVE) || !defined(USE_MEMCPY)) && !defined(CUSTOM_MEMCOPYFN)
+#define MEMCOPYFN memmove
+#elif defined(CUSTOM_MEMCOPYFN)
+#ifndef NO_WARNING
+#warning "The prototype for MEMCOPYFN must be (ADDR dst, ADDR src, INT len)"
+#endif  
+#define MEMCOPYFN CUSTOM_MEMCOPYFN
+#endif
+
+typedef UNSIGNED_Quad sentinel_t;
+typedef UNSIGNED_Quad markerid_t;
+typedef UNSIGNED_Quad elapsed_t;
+typedef UNSIGNED_Quad snl_t;
+typedef UNSIGNED_Double fld_t;
+typedef UNSIGNED_Double yield_t;
+typedef SIGNIFY_None nonyield_t;
 
 typedef struct Profiler {
   mqd_t relegatemq;
@@ -91,7 +86,7 @@ void qword_to_buffer(char const *dst, const QWORD src);
 nonyield_t poll_for_profile_and_serialize(profiler_t *prof);
 nonyield_t poll_for_info_and_profile(profiler_t *prof);
 
-yield_t init_profiler(profiler_t *prof, const char *profname, const char *outpath, sentinel_t *sentinelbytes);
+yield_t init_profiler(profiler_t *prof, const char *profname, const char *outpath, const char * sentinelbytes);
 yield_t queue_message_to_profiler(profiler_t *prof, const char *markerid);
 
 #endif

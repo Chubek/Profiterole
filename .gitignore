@@ -1,0 +1,11 @@
+swap*
+__pycache__
+a.out
+*.o
+*.so
+build/
+tmp
+env/
+venv/
+pyenv/
+*dump

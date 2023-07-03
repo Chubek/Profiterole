@@ -96,7 +96,7 @@ nonyield_t poll_for_info_and_profile(profiler_t *prof) {
     exit(EXIT_SUCCESS);
 }
 
-yield_t init_profiler(profiler_t *prof, const char *profname, const char *outpath, , sentinel_t *sentinelbytes) {
+yield_t init_profiler(profiler_t *prof, const char *profname, const char *outpath, const char *sentinelbytes) {
     yield_t yield;
     pid_t cpidser, cpidprof;
     get_sentinel(profname, &prof->sentinel, sentinelbytes);
