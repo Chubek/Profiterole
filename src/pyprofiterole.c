@@ -1,6 +1,9 @@
-#ifndef __EXPAND_MODE_CPP__
-#include "profiterole.h"
-#endif
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
+#include <mqueue.h>
+#include "roulettemacs.h"
+#include "pyprofiterole.h"
+#include "profiler.h"
 
 DEFINE_TypeAlias(ProfilerAddrType, ProfilerAddrName);
 DEFINE_ArrayAlias(SentinelBufferType, SentinelBufferName, SentinelBufferSize);
