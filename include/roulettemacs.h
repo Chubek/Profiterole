@@ -77,21 +77,8 @@
   do {  TOKEN_ConcatLowdash(NAME, SuffixTemp) = *TOKEN_ConcatLowdash(NAME, SuffixPtr)++; *TOKEN_ConcatLowdash(NAME, SuffixPtr) = ASSGNVAL;  } while (TOKEN_ConcatLowdash(NAME, SuffixTemp)) 
   
 
-#define BUFFER_ReferArray(ARRAY) &ARRAY[0]
+#define BUFFER_ReferArray(ARRAY) (const char)&ARRAY[0]
 
-
-#define SEND_MESSAGE(CHANNEL, BUFFER)                                          \
-  mq_send(CHANNEL, (char *)BUFFER, sizeof(profinfo_t), NULL)
-#define RECEIVE_MESSAGE(CHANNEL, BUFFER)                                       \
-  mq_receive(CHANNEL, (char *)BUFFER, sizeof(profinfo_t), NULL)
-#define EMIT_SENTINEL(FD)                                                      \
-  do {                                                                         \
-    QWORD sntnl = BINFILE_SENTINEL;                                            \
-    write(FD, &sntnl, sizeof(QWORD));                                          \
-  } while (0)
-#define YIELD_IF_ERR(...)                                                      \
-  if ((yield = __VA_ARGS__) < 0)                                               \
-  return yield
 
 
 #endif
