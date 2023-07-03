@@ -1,12 +1,6 @@
 #ifndef PROFITEROLE_H
 #define PROFITEROLE_H
 
-#define PY_SSIZE_T_CLEAN
-#include <Python.h>
-#include <stdlib.h>
-#include "profiler.h"
-#include "routlettemacs.h"
-
 #define PyObjIdent PyObject
 #define PyObjRef PyObjIdent *
 #define ExtensionObj CCProfiterole
