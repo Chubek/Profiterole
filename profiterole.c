@@ -95,7 +95,7 @@
 #define DEFINE_StaticObj(OBJTYY, OBJNAME, ...)                                   \
   static OBJTYY OBJNAME = {__VA_ARGS__}
 
-#define DEFINE_KWLIST(...) static char *kwargslist[] = {__VA_ARGS__, NULL}
+#define DEFINE_KwList(...) static char *kwargslist[] = {__VA_ARGS__, NULL}
 
 #define PARSE_FnArgs(FMT, ...)                                                   \
   if (!(PyArg_ParseTupleAndKeywords(args, kwargs, FMT, &kwargslist[0],         \
@@ -138,7 +138,7 @@ DEFINE_FuncProto(FUNCYIELD_NewFunc, FUNCNAME_NewFunc, FUNCPARAMS_NewFunc) {
 DEFINE_FuncProto(FUNCYIELD_InitProc, FUNCNAME_InitProc, FUNCPARAMS_InitProc) {
   DEFINE_NativeType(SentinelStrArrType, ATTRNAME_Sentinel);
   DEFINE_Exception(profxcpt, TOKEN_concat(ExtensionObj, ExceptionObject));
-  DEFINE_KWLIST(TOKEN_string(ATTRNAME_Name), TOKEN_string(ATTRNAME_OutPath));
+  DEFINE_KwList(TOKEN_string(ATTRNAME_Name), TOKEN_string(ATTRNAME_OutPath));
   StringArgument *ATTRNAME_Name = NULL, *ATTRNAME_OutPath = NULL;
   PARSE_FnArgs("ss", ATTRNAME_Name, ATTRNAME_OutPath);
   Py_XINCREF(PySelfObject->ATTRNAME_ProfileAddress);
@@ -156,7 +156,7 @@ DEFINE_FuncProto(FUNCYIELD_InitProc, FUNCNAME_InitProc, FUNCPARAMS_InitProc) {
 DEFINE_FuncProto(FUNCYIELD_TernaryFunc, FUNCNAME_CallTernary, FUNCPARAMS_TernaryFunc) {
   DEFINE_NativeType(ProfilerMemoryAddr, ATTRNAME_ProfileAddress);
   DEFINE_Exception(profxcpt, TOKEN_concat(ExtensionObj, ExceptionObject));
-  DEFINE_KWLIST(TOKEN_string(MarkerObj));
+  DEFINE_KwList(TOKEN_string(MarkerObj));
   StringArgument *MarkerObj = NULL;
   PARSE_FnArgs("s", MarkerObj);
   Py_XINCREF(PySelfObject->ATTRNAME_ProfileAddress);
