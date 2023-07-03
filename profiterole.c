@@ -3,217 +3,208 @@
 #include <python3.10/Python.h>
 #include <stdlib.h>
 
-#ifndef DOC_TYPE
-#define DOC_TYPE "Profiler for PyProfiterole"
-#endif
-
-#ifndef DOC_MODL
-#define DOC_MODL "PyProfiterole is an overhead-free profiler for Python"
-#endif
-
-#define QWORD_u unsigned long
-#define DWORD_u unsigned int
-#define WORD_u unsigned short
-#define BYTE_u unsigned char
-#define QWORD_s long
-#define DWORD_s int
-#define WORD_s short
-#define BYTE_s char
-#define MEMADDR void *
-#define CCNONE void
-
+#define UNSIGNED_QUAD unsigned long
+#define UNSIGNED_DOUBLE unsigned int
+#define UNSIGNED_HALF unsigned short
+#define UNSIGNED_BYTE unsigned char
+#define SIGNED_Quad long
+#define SIGNED_Double int
+#define SIGNED_Half short
+#define SIGNED_Byte char
+#define MEMORY_Address void *
+#define YIELD_None void
 #define NIL
 
-#define PYOREF PyObject *
-#define EXTOBJ CCProfiterole
-#define EXTPTR EXTOBJ *
-#define PRFPTR MemoryAddress
-#define PRFLEN sizeof(profiler_t)
-#define PRFREF profiler_t *
-#define PYSELF self
-#define CASTPY (PyObject *)PYSELF
-#define SNTLTY Sentinel_Type
-#define SNTLAR Sentinel_Array
-#define SNTLLN 8
-#define MARKER marker
-#define STRARG const char
-#define XPTOBJ ProfilerException
+#define PyObjRef PyObject *
+#define ExtensionObj CCProfiterole
+#define ExtensionObjRef ExtensionObj *
+#define ProfilerMemoryAddr ProfMemoryAddr
+#define ProfilerLength sizeof(profiler_t)
+#define ProfilerReference profiler_t *
+#define PySelfObject self
+#define SelfObjectCasted (PyObject *)PySelfObject
+#define SentinelStrArrType Sentinel_Type
+#define SentinelNumChars 8
+#define MarkerObj marker
+#define StringArgument const char
+#define ExceptionObject ProfilerException
+#define MainClassDoc "Profiler for PyProfiterole"
+#define MainModuleDoc "PyProfiterole is an overhead-free profiler for Python"
 
-#define STRUCTNAME_CCPROFILER EXTOBJ
 
-#define FUNCNAME_NEWFN create
-#define FUNCNAME_INITFN initialize
-#define FUNCNAME_CALLFN callproto
-#define FUNCNAME_DEALLOCFN freeobjmem
-#define FUNCNAME_GETATTRO getattributes
+#define STRUCTNAME_ProfilerObj ExtensionObj
 
-#define ATTRNAME_PROFADDR profaddr
-#define ATTRNAME_OUTPATH outpath
-#define ATTRNAME_NAME name
-#define ATTRNAME_SENTINEL sentinel
+#define FUNCNAME_NewFunc create
+#define FUNCNAME_InitProc initialize
+#define FUNCNAME_CallTernary callproto
+#define FUNCNAME_Destructor freeobjmem
 
-#define OBJNAME_MAINTYPE Profiler
-#define OBJNAME_MAINMODULE PyProfiterole
+#define FNCAST_NewFunc newfunc
+#define FNCAST_InitProc initproc
+#define FNCAST_TernaryFunc ternaryfunc
+#define FNCAST_Destructor destructor
 
-#define CAST_NEW newfunc
-#define CAST_INIT initproc
-#define CAST_TERNARY ternaryfunc
-#define CAST_DESTROY destructor
+#define ATTRNAME_ProfileAddress profiler_address
+#define ATTRNAME_OutPath outpath
+#define ATTRNAME_Name name
+#define ATTRNAME_Sentinel sentinel
 
-#define STR__(TOKEN) #TOKEN
-#define PASTE__(TOKEN1, TOKEN2, TOKEN3) TOKEN1##TOKEN2##TOKEN3
-#define STR(TOKEN) STR__(TOKEN)
-#define PASTE(TOKEN1, TOKEN2, TOKEN3) PASTE__(TOKEN1, TOKEN2, TOKEN3)
-#define CONCATNS__(TOKEN1, TOKEN2) STR__(TOKEN1.TOKEN2)
-#define CONCATNS(TOKEN1, TOKEN2) CONCATNS__(TOKEN1, TOKEN2)
+#define OBJNAME_MainType Profiler
+#define OBJNAME_MainModule PyProfiterole
 
-#define PYTYY_DEF(NAME) PyTypeObject *NAME
-#define PYOBJ_DEF(NAME) PyObject *NAME
-#define CCTYY_DEF(TYY, NAME) TYY NAME
-#define CCPTR_DEF(TYY, NAME) TYY *NAME
+#define __STR(TOKEN) #TOKEN
+#define __PASTE(TOKEN1, TOKEN2, TOKEN3) TOKEN1##TOKEN2##TOKEN3
+#define __CONCAT(TOKEN1, TOKEN2) TOKEN1.TOKEN2
+#define __EVAL(MAC, ...) MAC(__VA_ARGS__)
 
-#define GET_FUNCNAME__(PREFIX, FUNCNAME) PASTE(PREFIX, _, FUNCNAME)
-#define GET_FUNCNAME(FUNCNAME) GET_FUNCNAME__(EXTOBJ, FUNCNAME)
-#define GET_FUNCNAME_CASTED(CAST, FUNCNAME) (CAST) GET_FUNCNAME(FUNCNAME)
+#define TOKEN_string(TOKEN) __EVAL(__STR, TOKEN)
+#define TOKEN_paste(TOKEN1, TOKEN2, TOKEN3) __EVAL(__PASTE, TOKEN1, TOKEN2, TOKEN3)
+#define TOKEN_concat(TOKEN1, TOKEN2) __EVAL(__CONCAT, TOKEN1, TOKEN2)
 
-#define DECL_MEMSTRUCT(STRUCTNAME, ...)                                        \
+#define DEFINE_PyType(NAME) PyTypeObject *NAME
+#define DEFINE_PyObject(NAME) PyObject *NAME
+#define DEFINE_NativeType(TYY, NAME) TYY NAME
+#define DEFINE_NativePtr(TYY, NAME) TYY *NAME
+
+#define DEFINE_FuncName(FUNCNAME) TOKEN_paste(ExtensionObj, FUNCNAME)
+#define DEFINE_CastFunc(CAST, FUNCNAME) (CAST) DEFINE_FuncName(FUNCNAME)
+
+#define DEFINE_TypeAlias(MAIN, ALIAS) typedef MAIN ALIAS
+#define DEFINE_ArrayAlias(MAIN, ALIAS, SIZE) typedef MAIN ALIAS[SIZE]
+
+#define DEFINE_MemStruct(STRUCTNAME, ...)                                        \
   typedef struct {                                                             \
     __VA_ARGS__                                                                \
   } STRUCTNAME
 
-#define DECL_FUNCTION(RETTYPE, FUNCNAME, ...)                                  \
-  static RETTYPE GET_FUNCNAME(FUNCNAME)(__VA_ARGS__)
+#define DEFINE_FuncProto(RETTYPE, FUNCNAME, ...)                                  \
+  static RETTYPE DEFINE_FuncName(FUNCNAME)(__VA_ARGS__)
 
-#define FUNCARGS_NEWSIG PYTYY_DEF(type), PYOBJ_DEF(args), PYOBJ_DEF(kwargs)
-#define FUNCARGS_INITSIG                                                       \
-  CCPTR_DEF(EXTOBJ, PYSELF), PYOBJ_DEF(args), PYOBJ_DEF(kwargs)
-#define FUNCARGS_TERNARYSIG                                                    \
-  CCPTR_DEF(EXTOBJ, PYSELF), PYOBJ_DEF(args), PYOBJ_DEF(kwargs)
-#define FUNCARGS_DESTROYSIG CCPTR_DEF(EXTOBJ, PYSELF)
+#define FUNCPARAMS_NewFunc DEFINE_PyType(type), DEFINE_PyObject(args), DEFINE_PyObject(kwargs)
+#define FUNCPARAMS_InitProc                                                       \
+  DEFINE_NativePtr(ExtensionObj, PySelfObject), DEFINE_PyObject(args), DEFINE_PyObject(kwargs)
+#define FUNCPARAMS_TernaryFunc                                                    \
+  DEFINE_NativePtr(ExtensionObj, PySelfObject), DEFINE_PyObject(args), DEFINE_PyObject(kwargs)
+#define FUNCPARAMS_Destructor DEFINE_NativePtr(ExtensionObj, PySelfObject)
 
-#define FUNCRET_NEWSIG PYOBJ_DEF(NIL)
-#define FUNCRET_INITSIG CCTYY_DEF(DWORD_s, NIL)
-#define FUNCRET_TERNARYSIG PYOBJ_DEF(NIL)
-#define FUNCRET_DESTROYSIG CCTYY_DEF(CCNONE, NIL)
+#define FUNCYIELD_NewFunc DEFINE_PyObject(NIL)
+#define FUNCYIELD_InitProc DEFINE_NativeType(SIGNED_Double, NIL)
+#define FUNCYIELD_TernaryFunc DEFINE_PyObject(NIL)
+#define FUNCYIELD_Destructor DEFINE_NativeType(YIELD_None, NIL)
 
-#define DECL_STATICOBJ(OBJTYY, OBJNAME, ...)                                   \
+#define DEFINE_StaticObj(OBJTYY, OBJNAME, ...)                                   \
   static OBJTYY OBJNAME = {__VA_ARGS__}
 
-#define KWARGS_NAMES(...) static char *kwargslist[] = {__VA_ARGS__, NULL}
+#define DEFINE_KWLIST(...) static char *kwargslist[] = {__VA_ARGS__, NULL}
 
-#define PARSE_ARGS(FMT, ...)                                                   \
+#define PARSE_FnArgs(FMT, ...)                                                   \
   if (!(PyArg_ParseTupleAndKeywords(args, kwargs, FMT, &kwargslist[0],         \
                                     __VA_ARGS__)))                             \
   PyErr_BadArgument()
 
-#define NEW_EXCEPTION(NAME, NS) PYOREF NAME = PyErr_NewException(NS, NULL, NULL)
+#define DEFINE_Exception(NAME, NS) PyObjRef NAME = PyErr_NewException(NS, NULL, NULL)
 
-#define CREATE_REFARRAY(NAME, ...)                                             \
-  PyObject *NAME##arr[] =                                                      \
+#define REFARRAY_Create(NAME, ...)   \
+  PyObject *TOKEN_paste(NAME, array)[] =                                                      \
       {                                                                        \
           __VA_ARGS__,                                                         \
           NULL,                                                                \
   },                                                                           \
-           **NAME##ptr = &NAME##arr[0], *NAME
-#define INCREF_REFARRAY(NAME)                                                  \
-  while ((NAME = *NAME##ptr++)) {                                              \
-    Py_XINCREF(NAME);                                                          \
-  }
-#define DECREF_REFARRAY(NAME)                                                  \
-  while ((NAME = *NAME##ptr++)) {                                              \
-    Py_XDECREF(NAME);                                                          \
+           **TOKEN_paste(NAME, ptr) = &NAME_array[0], *TOKEN_paste(NAME, tmp)
+
+#define REFARRAY_Apply(NAME, APPLYFN)                                                  \
+  while ((TOKEN_paste(NAME, tmp) = *TOKEN_paste(NAME, ptr)++)) {                                              \
+    APPLYFN(NAME);                                                          \
   }
 
-typedef MEMADDR PRFPTR;
-typedef QWORD SNTLTY;
-typedef const char SNTLAR[SNTLLN];
+DEFINE_TypeAlias(MEMORY_Address, ProfilerMemoryAddr);
+DEFINE_ArryAlias(SIGNED_Byte, SentinelStrArrType, SentinelNumChars);
 
-DECL_MEMSTRUCT(STRUCTNAME_CCPROFILER,
-               PyObject_HEAD PYOBJ_DEF(ATTRNAME_PROFADDR);
-               PYOBJ_DEF(ATTRNAME_NAME); PYOBJ_DEF(ATTRNAME_OUTPATH);
-               PYOBJ_DEF(ATTRNAME_SENTINEL););
+DEFINE_MemStruct(STRUCTNAME_ProfilerObj,
+               PyObject_HEAD DEFINE_PyObject(ATTRNAME_ProfileAddress);
+               DEFINE_PyObject(ATTRNAME_Name); DEFINE_PyObject(ATTRNAME_OutPath);
+               DEFINE_PyObject(ATTRNAME_Sentinel););
 
-DECL_FUNCTION(FUNCRET_NEWSIG, FUNCNAME_NEWFN, FUNCARGS_NEWSIG) {
-  PRFPTR ATTRNAME_PROFADDR;
-  EXTPTR PYSELF;
-  ATTRNAME_PROFADDR = PyMem_RawCalloc(1, sizeof(PRFLEN));
-  PYSELF = (EXTPTR)type->tp_alloc(type, 0);
-  PYSELF->ATTRNAME_PROFADDR = PyLong_FromVoidPtr(ATTRNAME_PROFADDR);
-  Py_DECREF(PYSELF->ATTRNAME_PROFADDR);
-  return CASTPY;
+DEFINE_FuncProto(FUNCYIELD_NewFunc, FUNCNAME_NewFunc, FUNCPARAMS_NewFunc) {
+  ProfilerMemoryAddr ATTRNAME_ProfileAddress;
+  ExtensionObjRef PySelfObject;
+  ATTRNAME_ProfileAddress = PyMem_RawCalloc(1, sizeof(ProfilerLength));
+  PySelfObject = (ExtensionObjRef)type->tp_alloc(type, 0);
+  PySelfObject->ATTRNAME_ProfileAddress = PyLong_FromVoidPtr(ATTRNAME_ProfileAddress);
+  Py_DECREF(PySelfObject->ATTRNAME_ProfileAddress);
+  return SelfObjectCasted;
 }
 
-DECL_FUNCTION(FUNCRET_INITSIG, FUNCNAME_INITFN, FUNCARGS_INITSIG) {
-  CCTYY_DEF(SNTLTY, ATTRNAME_SENTINEL);
-  CCTYY_DEF(SNTLAR, sentinelbytes);
-  NEW_EXCEPTION(profxcpt, CONCATNS(EXTOBJ, XPTOBJ));
-  KWARGS_NAMES(STR(ATTRNAME_NAME), STR(ATTRNAME_OUTPATH));
-  STRARG *ATTRNAME_NAME = NULL, *ATTRNAME_OUTPATH = NULL;
-  PARSE_ARGS("ss", ATTRNAME_NAME, ATTRNAME_OUTPATH);
-  Py_XINCREF(PYSELF->ATTRNAME_PROFADDR);
-  PRFPTR ATTRNAME_PROFADDR = PyLong_AsVoidPtr(PYSELF->ATTRNAME_PROFADDR);
-  if ((init_profiler((PRFREF)ATTRNAME_PROFADDR, ATTRNAME_NAME, ATTRNAME_OUTPATH,
-                     &sentinelbytes[0])) < 0)
+DEFINE_FuncProto(FUNCYIELD_InitProc, FUNCNAME_InitProc, FUNCPARAMS_InitProc) {
+  DEFINE_NativeType(SentinelStrArrType, ATTRNAME_Sentinel);
+  DEFINE_Exception(profxcpt, TOKEN_concat(ExtensionObj, ExceptionObject));
+  DEFINE_KWLIST(TOKEN_string(ATTRNAME_Name), TOKEN_string(ATTRNAME_OutPath));
+  StringArgument *ATTRNAME_Name = NULL, *ATTRNAME_OutPath = NULL;
+  PARSE_FnArgs("ss", ATTRNAME_Name, ATTRNAME_OutPath);
+  Py_XINCREF(PySelfObject->ATTRNAME_ProfileAddress);
+  ProfilerMemoryAddr ATTRNAME_ProfileAddress = PyLong_AsVoidPtr(PySelfObject->ATTRNAME_ProfileAddress);
+  if ((init_profiler((ProfilerReference)ATTRNAME_ProfileAddress, ATTRNAME_Name, ATTRNAME_OutPath,
+                     &ATTRNAME_Sentinel[0])) < 0)
     PyErr_SetFromErrno(profxcpt);
-  Py_XDECREF(PYSELF->ATTRNAME_PROFADDR);
-  PYSELF->ATTRNAME_SENTINEL = PyLong_FromUnsignedLong(ATTRNAME_SENTINEL);
-  PYSELF->ATTRNAME_NAME = PyUnicode_FromString(ATTRNAME_NAME);
-  PYSELF->ATTRNAME_OUTPATH = PyUnicode_FromString(ATTRNAME_OUTPATH);
+  Py_XDECREF(PySelfObject->ATTRNAME_ProfileAddress);
+  PySelfObject->ATTRNAME_Sentinel = PyLong_FromUNSIGNEDLong(ATTRNAME_Sentinel);
+  PySelfObject->ATTRNAME_Name = PyUnicode_FromString(ATTRNAME_Name);
+  PySelfObject->ATTRNAME_OutPath = PyUnicode_FromString(ATTRNAME_OutPath);
   return RETURN_SUCCESS;
 }
 
-DECL_FUNCTION(FUNCRET_TERNARYSIG, FUNCNAME_CALLFN, FUNCARGS_TERNARYSIG) {
-  CCTYY_DEF(PRFPTR, ATTRNAME_PROFADDR);
-  NEW_EXCEPTION(profxcpt, CONCATNS(EXTOBJ, XPTOBJ));
-  KWARGS_NAMES(STR(MARKER));
-  STRARG *MARKER = NULL;
-  PARSE_ARGS("s", MARKER);
-  Py_XINCREF(PYSELF->ATTRNAME_PROFADDR);
-  ATTRNAME_PROFADDR = PyLong_AsVoidPtr(PYSELF->ATTRNAME_PROFADDR);
-  if (!(queue_message_to_profiler((PRFREF)ATTRNAME_PROFADDR, MARKER)))
+DEFINE_FuncProto(FUNCYIELD_TernaryFunc, FUNCNAME_CallTernary, FUNCPARAMS_TernaryFunc) {
+  DEFINE_NativeType(ProfilerMemoryAddr, ATTRNAME_ProfileAddress);
+  DEFINE_Exception(profxcpt, TOKEN_concat(ExtensionObj, ExceptionObject));
+  DEFINE_KWLIST(TOKEN_string(MarkerObj));
+  StringArgument *MarkerObj = NULL;
+  PARSE_FnArgs("s", MarkerObj);
+  Py_XINCREF(PySelfObject->ATTRNAME_ProfileAddress);
+  ATTRNAME_ProfileAddress = PyLong_AsVoidPtr(PySelfObject->ATTRNAME_ProfileAddress);
+  if (!(queue_message_to_profiler((ProfilerReference)ATTRNAME_ProfileAddress, MarkerObj)))
     PyErr_SetFromErrno(profxcpt);
-  Py_XDECREF(PYSELF->ATTRNAME_PROFADDR);
+  Py_XDECREF(PySelfObject->ATTRNAME_ProfileAddress);
   Py_RETURN_NONE;
 }
 
-DECL_FUNCTION(CCNONE, FUNCNAME_DEALLOCFN, FUNCARGS_DESTROYSIG) {
-  CREATE_REFARRAY(deallocrefs, PYSELF->ATTRNAME_PROFADDR,
-                  PYSELF->ATTRNAME_SENTINEL, PYSELF->ATTRNAME_OUTPATH,
-                  PYSELF->ATTRNAME_NAME);
-  PRFPTR ATTRNAME_PROFADDR = PyLong_AsVoidPtr(PYSELF->ATTRNAME_PROFADDR);
-  PyMem_RawFree(ATTRNAME_PROFADDR);
-  DECREF_REFARRAY(deallocrefs);
-  Py_TYPE(PYSELF)->tp_free(CASTPY);
+DEFINE_FuncProto(YIELD_None, FUNCNAME_Destructor, FUNCPARAMS_Destructor) {
+  REFARRAY_Create(deallocrefs, PySelfObject->ATTRNAME_ProfileAddress,
+                  PySelfObject->ATTRNAME_Sentinel, PySelfObject->ATTRNAME_OutPath,
+                  PySelfObject->ATTRNAME_Name);
+  ProfilerMemoryAddr ATTRNAME_ProfileAddress = PyLong_AsVoidPtr(PySelfObject->ATTRNAME_ProfileAddress);
+  PyMem_RawFree(ATTRNAME_ProfileAddress);
+  REFARRAY_Apply(deallocrefs, Py_XDECREF);
+  Py_TYPE(PySelfObject)->tp_free(SelfObjectCasted);
 }
 
-DECL_STATICOBJ(
-    PyTypeObject, OBJNAME_MAINTYPE,
-    PyVarObject_HEAD_INIT(NULL, 0).tp_name = CONCATNS(OBJNAME_MAINMODULE,
-                                                      OBJNAME_MAINTYPE),
-    .tp_doc = PyDoc_STR(DOC_TYPE), .tp_basicsize = sizeof(EXTOBJ),
+DEFINE_StaticObj(
+    PyTypeObject, OBJNAME_MainType,
+    PyVarObject_HEAD_INIT(NULL, 0).tp_name = TOKEN_concat(OBJNAME_MainModule,
+                                                      OBJNAME_MainType),
+    .tp_doc = PyDoc_TOKEN_string(MainClassDoc), .tp_basicsize = sizeof(ExtensionObj),
     .tp_itemsize = 0, .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
-    .tp_new = GET_FUNCNAME_CASTED(CAST_NEW, FUNCNAME_NEWFN),
-    .tp_init = GET_FUNCNAME_CASTED(CAST_INIT, FUNCNAME_INITFN),
-    .tp_call = GET_FUNCNAME_CASTED(CAST_TERNARY, FUNCNAME_CALLFN),
-    .tp_dealloc = GET_FUNCNAME_CASTED(CAST_DESTROY, FUNCNAME_DEALLOCFN));
+    .tp_new = DEFINE_CastFunc(FNCAST_NewFunc, FUNCNAME_NewFunc),
+    .tp_init = DEFINE_CastFunc(FNCAST_InitProc, FUNCNAME_InitProc),
+    .tp_call = DEFINE_CastFunc(FNCAST_TernaryFunc, FUNCNAME_CallTernary),
+    .tp_dealloc = DEFINE_CastFunc(FNCAST_Destructor, FUNCNAME_Destructor));
 
-DECL_STATICOBJ(PyModuleDef, OBJNAME_MAINMODULE, PyModuleDef_HEAD_INIT,
-               .m_name = STR(OBJNAME_MAINMODULE), .m_doc = PyDoc_STR(DOC_MODL),
+DEFINE_StaticObj(PyModuleDef, OBJNAME_MainModule, PyModuleDef_HEAD_INIT,
+               .m_name = TOKEN_string(OBJNAME_MainModule), .m_doc = PyDoc_TOKEN_string(MainModuleDoc),
                .m_size = -1);
 
-PyMODINIT_FUNC PyInit_profiterole(CCNONE) {
-  PYOBJ_DEF(module);
-  if ((PyType_Ready(&OBJNAME_MAINTYPE)) < 0)
+PyMODINIT_FUNC PyInit_profiterole(YIELD_None) {
+  DEFINE_PyObject(module);
+  if ((PyType_Ready(&OBJNAME_MainType)) < 0)
     return NULL;
 
-  if (!(module = PyModule_Create(&OBJNAME_MAINMODULE)))
+  if (!(module = PyModule_Create(&OBJNAME_MainModule)))
     return NULL;
 
-  Py_INCREF(&OBJNAME_MAINTYPE);
+  Py_INCREF(&OBJNAME_MainType);
 
-  if ((PyModule_AddObject(module, STR(OBJNAME_MAINMODULE),
-                          (PYOREF)&OBJNAME_MAINMODULE)) < 0) {
-    Py_DECREF(&OBJNAME_MAINTYPE);
+  if ((PyModule_AddObject(module, TOKEN_string(OBJNAME_MainModule),
+                          (PyObjRef)&OBJNAME_MainModule)) < 0) {
+    Py_DECREF(&OBJNAME_MainType);
     Py_DECREF(module);
     return NULL;
   }
