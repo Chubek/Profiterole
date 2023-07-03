@@ -18,13 +18,15 @@
 #define PyObjRef PyObject *
 #define ExtensionObj CCProfiterole
 #define ExtensionObjRef ExtensionObj *
-#define ProfilerMemoryAddr ProfMemoryAddr
+#define ProfilerAddrName ProfMemoryAddr
+#define ProfilerAddrType MEMORY_Address
 #define ProfilerLength sizeof(profiler_t)
 #define ProfilerReference profiler_t *
 #define PySelfObject self
 #define SelfObjectCasted (PyObject *)PySelfObject
-#define SentinelStrArrType Sentinel_Type
-#define SentinelNumChars 8
+#define SentinelBufferName Sentinel_Type
+#define SentinelBufferSize 8
+#define SentinelBufferType const SIGNED_Byte
 #define MarkerObj marker
 #define StringArgument const char
 #define ExceptionObject ProfilerException
@@ -52,14 +54,14 @@
 #define OBJNAME_MainType Profiler
 #define OBJNAME_MainModule PyProfiterole
 
-#define __STR(TOKEN) #TOKEN
-#define __PASTE(TOKEN1, TOKEN2, TOKEN3) TOKEN1##TOKEN2##TOKEN3
-#define __CONCAT(TOKEN1, TOKEN2) TOKEN1.TOKEN2
-#define __EVAL(MAC, ...) MAC(__VA_ARGS__)
+#define __PRF_STR(TOKEN) #TOKEN
+#define __PRF_PASTE(TOKEN1, TOKEN2, TOKEN3) TOKEN1##TOKEN2##TOKEN3
+#define __PRF_CONCAT(TOKEN1, TOKEN2) TOKEN1.TOKEN2
+#define __PRF_EVAL(MAC, ...) MAC(__VA_ARGS__)
 
-#define TOKEN_String(TOKEN) __EVAL(__STR, TOKEN)
-#define TOKEN_Paste(TOKEN1, TOKEN2, TOKEN3) __EVAL(__PASTE, TOKEN1, TOKEN2, TOKEN3)
-#define TOKEN_Concat(TOKEN1, TOKEN2) __EVAL(__CONCAT, TOKEN1, TOKEN2)
+#define TOKEN_String(TOKEN) __PRF_EVAL(__PRF_STR, TOKEN)
+#define TOKEN_Paste(TOKEN1, TOKEN2, TOKEN3) __PRF_EVAL(__PRF_PASTE, TOKEN1, TOKEN2, TOKEN3)
+#define TOKEN_Concat(TOKEN1, TOKEN2) __PRF_EVAL(__PRF_CONCAT, TOKEN1, TOKEN2)
 #define TOKEN_Namespace(TOKEN1, TOKEN2) TOKEN_String(TOKEN_Concat(TOKEN1, TOKEN2))
 
 #define DEFINE_PyType(NAME) PyTypeObject *NAME
@@ -67,7 +69,7 @@
 #define DEFINE_NativeType(TYY, NAME) TYY NAME
 #define DEFINE_NativePtr(TYY, NAME) TYY *NAME
 
-#define DEFINE_FuncName(FUNCNAME) TOKEN_Paste(ExtensionObj, FUNCNAME)
+#define DEFINE_FuncName(FUNCNAME) TOKEN_Paste(ExtensionObj, _, FUNCNAME)
 #define DEFINE_CastFunc(CAST, FUNCNAME) (CAST) DEFINE_FuncName(FUNCNAME)
 
 #define DEFINE_TypeAlias(MAIN, ALIAS) typedef MAIN ALIAS
@@ -106,21 +108,21 @@
 
 #define KWLIST_Create(...) static char *kwargslist[] = {__VA_ARGS__, NULL}
 
-#define REFARRAY_Create(NAME, ...)   \
-  PyObject *TOKEN_Paste(NAME, array)[] =                                                      \
+#define REFLIST_Create(NAME, ...)   \
+  PyObject *TOKEN_Paste(NAME, _, array)[] =                                                      \
       {                                                                        \
           __VA_ARGS__,                                                         \
           NULL,                                                                \
   },                                                                           \
-           **TOKEN_Paste(NAME, ptr) = &NAME_array[0], *TOKEN_Paste(NAME, tmp)
+           **TOKEN_Paste(NAME, _, ptr) = &NAME_array[0], *TOKEN_Paste(NAME, _, tmp)
 
-#define REFARRAY_Apply(NAME, APPLYFN)                                                  \
-  while ((TOKEN_Paste(NAME, tmp) = *TOKEN_Paste(NAME, ptr)++)) {                                              \
+#define REFLIST_Apply(NAME, APPLYFN)                                                  \
+  while ((TOKEN_Paste(NAME, _, tmp) = *TOKEN_Paste(NAME, _, ptr)++)) {                                              \
     APPLYFN(NAME);                                                          \
   }
 
-DEFINE_TypeAlias(MEMORY_Address, ProfilerMemoryAddr);
-DEFINE_ArryAlias(SIGNED_Byte, SentinelStrArrType, SentinelNumChars);
+DEFINE_TypeAlias(ProfilerAddrType, ProfilerAddrName);
+DEFINE_ArrayAlias(SentinelBufferType, SentinelBufferName, SentinelBufferSize);
 
 DEFINE_MemStruct(STRUCTNAME_ProfilerObj,
                PyObject_HEAD DEFINE_PyObject(ATTRNAME_ProfileAddress);
@@ -128,7 +130,7 @@ DEFINE_MemStruct(STRUCTNAME_ProfilerObj,
                DEFINE_PyObject(ATTRNAME_Sentinel););
 
 DEFINE_FuncProto(FUNCYIELD_NewFunc, FUNCNAME_NewFunc, FUNCPARAMS_NewFunc) {
-  ProfilerMemoryAddr ATTRNAME_ProfileAddress;
+  ProfilerAddrName ATTRNAME_ProfileAddress;
   ExtensionObjRef PySelfObject;
   ATTRNAME_ProfileAddress = PyMem_RawCalloc(1, sizeof(ProfilerLength));
   PySelfObject = (ExtensionObjRef)type->tp_alloc(type, 0);
@@ -138,25 +140,25 @@ DEFINE_FuncProto(FUNCYIELD_NewFunc, FUNCNAME_NewFunc, FUNCPARAMS_NewFunc) {
 }
 
 DEFINE_FuncProto(FUNCYIELD_InitProc, FUNCNAME_InitProc, FUNCPARAMS_InitProc) {
-  DEFINE_NativeType(SentinelStrArrType, ATTRNAME_Sentinel);
+  DEFINE_NativeType(SentinelBufferName, ATTRNAME_Sentinel);
   DEFINE_Exception(profxcpt, TOKEN_Namespace(ExtensionObj, ExceptionObject));
   KWLIST_Create(TOKEN_String(ATTRNAME_Name), TOKEN_String(ATTRNAME_OutPath));
   StringArgument *ATTRNAME_Name = NULL, *ATTRNAME_OutPath = NULL;
   PARSE_FnArgs("ss", ATTRNAME_Name, ATTRNAME_OutPath);
   Py_XINCREF(PySelfObject->ATTRNAME_ProfileAddress);
-  ProfilerMemoryAddr ATTRNAME_ProfileAddress = PyLong_AsVoidPtr(PySelfObject->ATTRNAME_ProfileAddress);
+  ProfilerAddrName ATTRNAME_ProfileAddress = PyLong_AsVoidPtr(PySelfObject->ATTRNAME_ProfileAddress);
   if ((init_profiler((ProfilerReference)ATTRNAME_ProfileAddress, ATTRNAME_Name, ATTRNAME_OutPath,
                      &ATTRNAME_Sentinel[0])) < 0)
     PyErr_SetFromErrno(profxcpt);
   Py_XDECREF(PySelfObject->ATTRNAME_ProfileAddress);
-  PySelfObject->ATTRNAME_Sentinel = PyLong_FromUNSIGNEDLong(ATTRNAME_Sentinel);
+  PySelfObject->ATTRNAME_Sentinel = PyUnicode_FromString(ATTRNAME_Sentinel);
   PySelfObject->ATTRNAME_Name = PyUnicode_FromString(ATTRNAME_Name);
   PySelfObject->ATTRNAME_OutPath = PyUnicode_FromString(ATTRNAME_OutPath);
   return RETURN_SUCCESS;
 }
 
 DEFINE_FuncProto(FUNCYIELD_TernaryFunc, FUNCNAME_CallTernary, FUNCPARAMS_TernaryFunc) {
-  DEFINE_NativeType(ProfilerMemoryAddr, ATTRNAME_ProfileAddress);
+  DEFINE_NativeType(ProfilerAddrName, ATTRNAME_ProfileAddress);
   DEFINE_Exception(profxcpt, TOKEN_Namespace(ExtensionObj, ExceptionObject));
   KWLIST_Create(TOKEN_String(MarkerObj));
   StringArgument *MarkerObj = NULL;
@@ -170,12 +172,12 @@ DEFINE_FuncProto(FUNCYIELD_TernaryFunc, FUNCNAME_CallTernary, FUNCPARAMS_Ternary
 }
 
 DEFINE_FuncProto(SIGNIFY_None, FUNCNAME_Destructor, FUNCPARAMS_Destructor) {
-  REFARRAY_Create(deallocrefs, PySelfObject->ATTRNAME_ProfileAddress,
+  REFLIST_Create(deallocrefs, PySelfObject->ATTRNAME_ProfileAddress,
                   PySelfObject->ATTRNAME_Sentinel, PySelfObject->ATTRNAME_OutPath,
                   PySelfObject->ATTRNAME_Name);
-  ProfilerMemoryAddr ATTRNAME_ProfileAddress = PyLong_AsVoidPtr(PySelfObject->ATTRNAME_ProfileAddress);
+  ProfilerAddrName ATTRNAME_ProfileAddress = PyLong_AsVoidPtr(PySelfObject->ATTRNAME_ProfileAddress);
   PyMem_RawFree(ATTRNAME_ProfileAddress);
-  REFARRAY_Apply(deallocrefs, Py_XDECREF);
+  REFLIST_Apply(deallocrefs, Py_XDECREF);
   Py_TYPE(PySelfObject)->tp_free(SelfObjectCasted);
 }
 
