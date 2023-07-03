@@ -1,5 +1,5 @@
-#ifndef FRAISEMACS_H
-#define FRAISEMACS_H
+#ifndef ROULETTEMACS_H
+#define ROULETTEMACS_H
 
 #define UNSIGNED_Quad unsigned long
 #define UNSIGNED_Double unsigned int
