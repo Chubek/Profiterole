@@ -20,7 +20,9 @@
 #define SuffixArray array
 #define SuffixPtr ptr
 #define SuffixTemp tmp
-#define MainClassDoc "Profiler for PyProfiterole, please see github/Chubek/Profiterole for more info"
+#define MainClassDoc                                                           \
+  "Profiler for PyProfiterole, please see github/Chubek/Profiterole for more " \
+  "info"
 #define MainModuleDoc "PyProfiterole is an overhead-free profiler for Python"
 
 #define STRUCTNAME_ProfilerObj ExtensionObj
@@ -43,18 +45,19 @@
 #define FNCAST_TernaryFunc ternaryfunc
 #define FNCAST_Destructor destructor
 
-#define FUNCPARAMS_NewFunc DEFINE_PyType(type), DEFINE_PyObject(args), DEFINE_PyObject(kwargs)
-#define FUNCPARAMS_InitProc                                                       \
-  DEFINE_NativePtr(ExtensionObj, PySelfObject), DEFINE_PyObject(args), DEFINE_PyObject(kwargs)
-#define FUNCPARAMS_TernaryFunc                                                    \
-  DEFINE_NativePtr(ExtensionObj, PySelfObject), DEFINE_PyObject(args), DEFINE_PyObject(kwargs)
+#define FUNCPARAMS_NewFunc                                                     \
+  DEFINE_PyType(type), DEFINE_PyObject(args), DEFINE_PyObject(kwargs)
+#define FUNCPARAMS_InitProc                                                    \
+  DEFINE_NativePtr(ExtensionObj, PySelfObject), DEFINE_PyObject(args),         \
+      DEFINE_PyObject(kwargs)
+#define FUNCPARAMS_TernaryFunc                                                 \
+  DEFINE_NativePtr(ExtensionObj, PySelfObject), DEFINE_PyObject(args),         \
+      DEFINE_PyObject(kwargs)
 #define FUNCPARAMS_Destructor DEFINE_NativePtr(ExtensionObj, PySelfObject)
 
 #define FUNCYIELD_NewFunc DEFINE_PyObject(NIL)
 #define FUNCYIELD_InitProc DEFINE_NativeType(SIGNED_Double, NIL)
 #define FUNCYIELD_TernaryFunc DEFINE_PyObject(NIL)
 #define FUNCYIELD_Destructor DEFINE_NativeType(SIGNIFY_None, NIL)
-
-
 
 #endif

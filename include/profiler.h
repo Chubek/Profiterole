@@ -43,12 +43,14 @@
 
 #if defined(NO_ASM_FUNC) && defined(USE_MEMCPY)
 #define MEMCOPYFN memcpy
-#elif defined(NO_ASM_FUNC) && (defined(USE_MEMMOVE) || !defined(USE_MEMCPY)) && !defined(CUSTOM_MEMCOPYFN)
+#elif defined(NO_ASM_FUNC) &&                                                  \
+    (defined(USE_MEMMOVE) || !defined(USE_MEMCPY)) &&                          \
+    !defined(CUSTOM_MEMCOPYFN)
 #define MEMCOPYFN memmove
 #elif defined(CUSTOM_MEMCOPYFN)
 #ifndef NO_WARNING
 #warning "The prototype for MEMCOPYFN must be (ADDR dst, ADDR src, INT len)"
-#endif  
+#endif
 #define MEMCOPYFN CUSTOM_MEMCOPYFN
 #endif
 
@@ -77,19 +79,21 @@ elapsed_t get_elapsed_since(void);
 markerid_t buffer_to_qword(const char *src);
 nonyield_t qword_to_buffer(char *dst, const QWORD src);
 
-nonyield_t hash_sentinel(const char *profname, QWORD *sentinelqword, char *sentinelbytes);
+nonyield_t hash_sentinel(const char *profname, QWORD *sentinelqword,
+                         char *sentinelbytes);
 
 nonyield_t poll_for_profile_and_serialize(profiler_t *prof);
 nonyield_t poll_for_info_and_profile(profiler_t *prof);
 
-yield_t init_profiler(profiler_t *prof, const char *profname, const char *outpath, char * sentinelbytes);
+yield_t init_profiler(profiler_t *prof, const char *profname,
+                      const char *outpath, char *sentinelbytes);
 yield_t queue_message_to_profiler(profiler_t *prof, const char *markerid);
 
 #define SEND_MESSAGE(CHANNEL, BUFFER)                                          \
   mq_send(CHANNEL, (char *)BUFFER, sizeof(profinfo_t), priority)
 #define RECEIVE_MESSAGE(CHANNEL, BUFFER)                                       \
   mq_receive(CHANNEL, (char *)BUFFER, sizeof(profinfo_t), &priority)
-#define WRITE_BINMAGIC(FD)                                                      \
+#define WRITE_BINMAGIC(FD)                                                     \
   do {                                                                         \
     QWORD sntnl = BINFILE_SENTINEL;                                            \
     write(FD, &sntnl, sizeof(QWORD));                                          \
@@ -97,7 +101,5 @@ yield_t queue_message_to_profiler(profiler_t *prof, const char *markerid);
 #define YIELD_IF_ERR(...)                                                      \
   if ((yield = __VA_ARGS__) < 0)                                               \
   return yield
-
-
 
 #endif
