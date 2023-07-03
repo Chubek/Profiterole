@@ -11,31 +11,52 @@ elapsed_t get_elapsed_since(NILTY) {
     return cputime;
 }
 
-markerid_t byteptr_to_qword(char *markerid) {
-    markerid_t qword;
-    asm volatile( ASM_IDQWRD
+QWORD buffer_to_qword(char const *src) {
+    QWORD qword;
+    asm volatile( ASM_BUF2QW
             : "=r" (qword)
-            : "r" (markerid)
+            : "r" (src)
             : CLB_IDQWRD);
     return qword;
+}
+
+void qword_to_buffer(char const *dst, const QWORD src) {
+    asm volatile( ASM_QW2BUF
+            : "=r" (dst)
+            : "r" (src)
+        );
 }
 
 #else
 
 elapsed_t get_elapsed_since(NILTY) {
-    struct timespec ts;
-    clock_gettime(CLOCK_REALTIME, &ts);
-    return ts.tv_nsec;
+    struct tms proctime;
+    times(&proctime);
+    return proctime.tms_utime;
 }
 
-markerid_t byteptr_to_qword(char *markerid) {
-    markerid_t qword = 0;
-    for (int i = 0; i < sizeof(markerid_t); i++)
-        qword |= markerid[i] << (i << 3);
+QWORD buffer_to_qword(char const *src) {
+    QWORD qword = 0;
+    MEMCOPYFN(&qword, src, sizeof(QWORD));
     return qword;
 }
 
+void qword_to_buffer(char const *dst, const QWORD src) {
+    MEMCOPYFN(dst, &src, sizeof(QWORD));
+}
+
 #endif
+
+void get_sentinel(char *profname, QWORD *sentinelqword, char const *sentinelbytes) {
+    char c;
+    sentinel_t sentinel = 0;
+
+    while ((c = *profname++))
+        sentinel = ((sentinel << 5) * sentinel) + c;
+    
+    *sentinelqword = sentinel;
+    qword_to_buffer(sentinelbytes, sentinel);
+}
 
 
 nonyield_t poll_for_profile_and_serialize(profiler_t *prof) {
@@ -75,9 +96,10 @@ nonyield_t poll_for_info_and_profile(profiler_t *prof) {
     exit(EXIT_SUCCESS);
 }
 
-yield_t init_profiler(profiler_t *prof, char *profname, char *outpath) {
+yield_t init_profiler(profiler_t *prof, const char *profname, const char *outpath, , sentinel_t *sentinelbytes) {
     yield_t yield;
     pid_t cpidser, cpidprof;
+    get_sentinel(profname, &prof->sentinel, sentinelbytes);
     YIELD_IF_ERR(prof->relegatemq = mq_open(profname, O_CREAT | O_RDWR));
     YIELD_IF_ERR(prof->serialoutfd = open(outpath, O_CREAT | O_RDWR));
     YIELD_IF_ERR(prof->pidserializer = cpidser = fork());
@@ -96,18 +118,10 @@ yield_t init_profiler(profiler_t *prof, char *profname, char *outpath) {
     return RETURN_FAILURE;
 }
 
-yield_t queue_message_to_profiler(profiler_t *prof, char *markerid) {
+yield_t queue_message_to_profiler(profiler_t *prof, const char *markerid) {
     yield_t yield;
-    markerid_t qwdid = byteptr_to_qword(markerid);
+    markerid_t qwdid = buffer_to_qword(markerid);
     profinfo_t pinfo = (profinfo_t){ .id = qwdid };
     YIELD_IF_ERR(SEND_MESSAGE(prof->relegatemq, &pinfo));
     return RETURN_SUCCESS;
 }
-
-yield_t terminate_profiler(profiler_t *prof) {
-    yield_t yield;
-    profinfo_t pinfo = (profinfo_t){ .id = (markerid_t)-1 };
-    YIELD_IF_ERR(SEND_MESSAGE(prof->relegatemq, &pinfo));
-    return RETURN_SUCCESS;
-}
-
