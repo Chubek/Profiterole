@@ -49,8 +49,6 @@
 #define FNCAST_TernaryFunc ternaryfunc
 #define FNCAST_Destructor destructor
 
-
-
 #define FUNCPARAMS_NewFunc DEFINE_PyType(type), DEFINE_PyObject(args), DEFINE_PyObject(kwargs)
 #define FUNCPARAMS_InitProc                                                       \
   DEFINE_NativePtr(ExtensionObj, PySelfObject), DEFINE_PyObject(args), DEFINE_PyObject(kwargs)
