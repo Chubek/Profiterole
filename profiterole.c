@@ -12,7 +12,7 @@
 #define SIGNED_Half short
 #define SIGNED_Byte char
 #define MEMORY_Address void *
-#define YIELD_None void
+#define SIGNIFY_None void
 #define NIL
 
 #define PyObjRef PyObject *
@@ -57,16 +57,17 @@
 #define __CONCAT(TOKEN1, TOKEN2) TOKEN1.TOKEN2
 #define __EVAL(MAC, ...) MAC(__VA_ARGS__)
 
-#define TOKEN_string(TOKEN) __EVAL(__STR, TOKEN)
-#define TOKEN_paste(TOKEN1, TOKEN2, TOKEN3) __EVAL(__PASTE, TOKEN1, TOKEN2, TOKEN3)
-#define TOKEN_concat(TOKEN1, TOKEN2) __EVAL(__CONCAT, TOKEN1, TOKEN2)
+#define TOKEN_String(TOKEN) __EVAL(__STR, TOKEN)
+#define TOKEN_Paste(TOKEN1, TOKEN2, TOKEN3) __EVAL(__PASTE, TOKEN1, TOKEN2, TOKEN3)
+#define TOKEN_Concat(TOKEN1, TOKEN2) __EVAL(__CONCAT, TOKEN1, TOKEN2)
+#define TOKEN_Namespace(TOKEN1, TOKEN2) TOKEN_String(TOKEN_Concat(TOKEN1, TOKEN2))
 
 #define DEFINE_PyType(NAME) PyTypeObject *NAME
 #define DEFINE_PyObject(NAME) PyObject *NAME
 #define DEFINE_NativeType(TYY, NAME) TYY NAME
 #define DEFINE_NativePtr(TYY, NAME) TYY *NAME
 
-#define DEFINE_FuncName(FUNCNAME) TOKEN_paste(ExtensionObj, FUNCNAME)
+#define DEFINE_FuncName(FUNCNAME) TOKEN_Paste(ExtensionObj, FUNCNAME)
 #define DEFINE_CastFunc(CAST, FUNCNAME) (CAST) DEFINE_FuncName(FUNCNAME)
 
 #define DEFINE_TypeAlias(MAIN, ALIAS) typedef MAIN ALIAS
@@ -90,12 +91,11 @@
 #define FUNCYIELD_NewFunc DEFINE_PyObject(NIL)
 #define FUNCYIELD_InitProc DEFINE_NativeType(SIGNED_Double, NIL)
 #define FUNCYIELD_TernaryFunc DEFINE_PyObject(NIL)
-#define FUNCYIELD_Destructor DEFINE_NativeType(YIELD_None, NIL)
+#define FUNCYIELD_Destructor DEFINE_NativeType(SIGNIFY_None, NIL)
 
 #define DEFINE_StaticObj(OBJTYY, OBJNAME, ...)                                   \
   static OBJTYY OBJNAME = {__VA_ARGS__}
 
-#define DEFINE_KwList(...) static char *kwargslist[] = {__VA_ARGS__, NULL}
 
 #define PARSE_FnArgs(FMT, ...)                                                   \
   if (!(PyArg_ParseTupleAndKeywords(args, kwargs, FMT, &kwargslist[0],         \
@@ -104,16 +104,18 @@
 
 #define DEFINE_Exception(NAME, NS) PyObjRef NAME = PyErr_NewException(NS, NULL, NULL)
 
+#define KWLIST_Create(...) static char *kwargslist[] = {__VA_ARGS__, NULL}
+
 #define REFARRAY_Create(NAME, ...)   \
-  PyObject *TOKEN_paste(NAME, array)[] =                                                      \
+  PyObject *TOKEN_Paste(NAME, array)[] =                                                      \
       {                                                                        \
           __VA_ARGS__,                                                         \
           NULL,                                                                \
   },                                                                           \
-           **TOKEN_paste(NAME, ptr) = &NAME_array[0], *TOKEN_paste(NAME, tmp)
+           **TOKEN_Paste(NAME, ptr) = &NAME_array[0], *TOKEN_Paste(NAME, tmp)
 
 #define REFARRAY_Apply(NAME, APPLYFN)                                                  \
-  while ((TOKEN_paste(NAME, tmp) = *TOKEN_paste(NAME, ptr)++)) {                                              \
+  while ((TOKEN_Paste(NAME, tmp) = *TOKEN_Paste(NAME, ptr)++)) {                                              \
     APPLYFN(NAME);                                                          \
   }
 
@@ -137,8 +139,8 @@ DEFINE_FuncProto(FUNCYIELD_NewFunc, FUNCNAME_NewFunc, FUNCPARAMS_NewFunc) {
 
 DEFINE_FuncProto(FUNCYIELD_InitProc, FUNCNAME_InitProc, FUNCPARAMS_InitProc) {
   DEFINE_NativeType(SentinelStrArrType, ATTRNAME_Sentinel);
-  DEFINE_Exception(profxcpt, TOKEN_concat(ExtensionObj, ExceptionObject));
-  DEFINE_KwList(TOKEN_string(ATTRNAME_Name), TOKEN_string(ATTRNAME_OutPath));
+  DEFINE_Exception(profxcpt, TOKEN_Namespace(ExtensionObj, ExceptionObject));
+  KWLIST_Create(TOKEN_String(ATTRNAME_Name), TOKEN_String(ATTRNAME_OutPath));
   StringArgument *ATTRNAME_Name = NULL, *ATTRNAME_OutPath = NULL;
   PARSE_FnArgs("ss", ATTRNAME_Name, ATTRNAME_OutPath);
   Py_XINCREF(PySelfObject->ATTRNAME_ProfileAddress);
@@ -155,8 +157,8 @@ DEFINE_FuncProto(FUNCYIELD_InitProc, FUNCNAME_InitProc, FUNCPARAMS_InitProc) {
 
 DEFINE_FuncProto(FUNCYIELD_TernaryFunc, FUNCNAME_CallTernary, FUNCPARAMS_TernaryFunc) {
   DEFINE_NativeType(ProfilerMemoryAddr, ATTRNAME_ProfileAddress);
-  DEFINE_Exception(profxcpt, TOKEN_concat(ExtensionObj, ExceptionObject));
-  DEFINE_KwList(TOKEN_string(MarkerObj));
+  DEFINE_Exception(profxcpt, TOKEN_Namespace(ExtensionObj, ExceptionObject));
+  KWLIST_Create(TOKEN_String(MarkerObj));
   StringArgument *MarkerObj = NULL;
   PARSE_FnArgs("s", MarkerObj);
   Py_XINCREF(PySelfObject->ATTRNAME_ProfileAddress);
@@ -167,7 +169,7 @@ DEFINE_FuncProto(FUNCYIELD_TernaryFunc, FUNCNAME_CallTernary, FUNCPARAMS_Ternary
   Py_RETURN_NONE;
 }
 
-DEFINE_FuncProto(YIELD_None, FUNCNAME_Destructor, FUNCPARAMS_Destructor) {
+DEFINE_FuncProto(SIGNIFY_None, FUNCNAME_Destructor, FUNCPARAMS_Destructor) {
   REFARRAY_Create(deallocrefs, PySelfObject->ATTRNAME_ProfileAddress,
                   PySelfObject->ATTRNAME_Sentinel, PySelfObject->ATTRNAME_OutPath,
                   PySelfObject->ATTRNAME_Name);
@@ -179,9 +181,9 @@ DEFINE_FuncProto(YIELD_None, FUNCNAME_Destructor, FUNCPARAMS_Destructor) {
 
 DEFINE_StaticObj(
     PyTypeObject, OBJNAME_MainType,
-    PyVarObject_HEAD_INIT(NULL, 0).tp_name = TOKEN_concat(OBJNAME_MainModule,
+    PyVarObject_HEAD_INIT(NULL, 0).tp_name = TOKEN_Namespace(OBJNAME_MainModule,
                                                       OBJNAME_MainType),
-    .tp_doc = PyDoc_TOKEN_string(MainClassDoc), .tp_basicsize = sizeof(ExtensionObj),
+    .tp_doc = PyDoc_TOKEN_String(MainClassDoc), .tp_basicsize = sizeof(ExtensionObj),
     .tp_itemsize = 0, .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
     .tp_new = DEFINE_CastFunc(FNCAST_NewFunc, FUNCNAME_NewFunc),
     .tp_init = DEFINE_CastFunc(FNCAST_InitProc, FUNCNAME_InitProc),
@@ -189,10 +191,10 @@ DEFINE_StaticObj(
     .tp_dealloc = DEFINE_CastFunc(FNCAST_Destructor, FUNCNAME_Destructor));
 
 DEFINE_StaticObj(PyModuleDef, OBJNAME_MainModule, PyModuleDef_HEAD_INIT,
-               .m_name = TOKEN_string(OBJNAME_MainModule), .m_doc = PyDoc_TOKEN_string(MainModuleDoc),
+               .m_name = TOKEN_String(OBJNAME_MainModule), .m_doc = PyDoc_TOKEN_String(MainModuleDoc),
                .m_size = -1);
 
-PyMODINIT_FUNC PyInit_profiterole(YIELD_None) {
+PyMODINIT_FUNC PyInit_profiterole(SIGNIFY_None) {
   DEFINE_PyObject(module);
   if ((PyType_Ready(&OBJNAME_MainType)) < 0)
     return NULL;
@@ -202,7 +204,7 @@ PyMODINIT_FUNC PyInit_profiterole(YIELD_None) {
 
   Py_INCREF(&OBJNAME_MainType);
 
-  if ((PyModule_AddObject(module, TOKEN_string(OBJNAME_MainModule),
+  if ((PyModule_AddObject(module, TOKEN_String(OBJNAME_MainModule),
                           (PyObjRef)&OBJNAME_MainModule)) < 0) {
     Py_DECREF(&OBJNAME_MainType);
     Py_DECREF(module);
