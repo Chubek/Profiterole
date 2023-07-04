@@ -12,3 +12,5 @@ pyenv*/
 missing
 *cache
 dist
+*.egg-info/
+*.bin

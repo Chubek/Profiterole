@@ -1,9 +1,9 @@
 #define PY_SSIZE_T_CLEAN
+#include <Python.h>
+#include <mqueue.h>
 #include "pyprofiterole.h"
 #include "profiler.h"
 #include "roulettemacs.h"
-#include <Python.h>
-#include <mqueue.h>
 
 DEFINE_TypeAlias(ProfilerAddrType, ProfilerAddrName);
 DEFINE_ArrayAlias(SentinelBufferType, SentinelBufferName, SentinelBufferSize);
@@ -96,7 +96,7 @@ DEFINE_StaticObj(PyModuleDef, OBJNAME_MainModule, PyModuleDef_HEAD_INIT,
                  .m_name = TOKEN_AsciiStr(OBJNAME_MainModule),
                  .m_doc = PyDoc_STR(MainModuleDoc), .m_size = -1);
 
-PyMODINIT_FUNC PyInit_profiterole(SIGNIFY_None) {
+PyMODINIT_FUNC PyInit_PyProfiterole(SIGNIFY_None) {
   DEFINE_PyObject(module);
   if ((PyType_Ready(&OBJNAME_MainType)) < 0)
     return NULL;

@@ -1,4 +1,3 @@
-#include "profiler.h"
 #include <fcntl.h>
 #include <mqueue.h>
 #include <signal.h>
@@ -8,6 +7,7 @@
 #include <sys/times.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include "profiler.h"
 
 #ifndef NO_ASM_FUNC
 
