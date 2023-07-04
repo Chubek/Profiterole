@@ -86,6 +86,6 @@
     *TOKEN_ConcatLowdash(NAME, SuffixPtr) = ASSGNVAL;                          \
   } while (TOKEN_ConcatLowdash(NAME, SuffixTemp))
 
-#define BUFFER_ReferArray(ARRAY) (const char)&ARRAY[0]
+#define BUFFER_ReferArray(ARRAY) (char*) &ARRAY[0]
 
 #endif
