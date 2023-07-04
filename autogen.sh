@@ -15,6 +15,7 @@ elif [[ $1 == -rm ]]; then
 	rm -rf autom4te.cache
 	rm -rf build
 	rm -rf pyprofiterole.egg-info
+	rm -rf m4
 	exit;
 fi
 

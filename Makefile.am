@@ -1,6 +1,6 @@
 AM_CCFLAGS = $(all_includes)
 
-lib_LTLIBRARIES = libprofiler.la
+lib_LTLIBRARIES = libprofiterole.la
 
-libprofiler_la_LDFLAGS = $(all_libraries)
-libprofiler_la_SOURCES = profiler.c profiler.h
+libprofiterole_la_LDFLAGS = -lrt
+libprofiterole_la_SOURCES = $(top_srcdir)/include/custardmacs.h $(top_srcdir)/include/profiterole.h $(top_srcdir)/src/profiterole.c
