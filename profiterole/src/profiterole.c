@@ -3,13 +3,13 @@
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/stat.h>
 #include <sys/times.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include "profiler.h"
+#include "custardmacs.h"
+#include "profiterole.h"
 
-#ifndef NO_ASM_FUNC
+#ifdef ENABLE_ASM_FUNCS
 
 elapsed_t get_elapsed_since(void) {
   elapsed_t cputime;

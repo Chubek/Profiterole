@@ -1,8 +1,8 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include <mqueue.h>
+#include "profiterole.h"
 #include "pyprofiterole.h"
-#include "profiler.h"
 #include "roulettemacs.h"
 
 DEFINE_TypeAlias(ProfilerAddrType, ProfilerAddrName);
