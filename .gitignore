@@ -5,9 +5,10 @@ a.out
 *.so
 build/
 tmp
-env/
-venv/
-pyenv/
+env*/
+venv*/
+pyenv*/
 *dump
 missing
 *cache
+dist
