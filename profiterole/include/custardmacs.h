@@ -7,20 +7,6 @@
 
 #define QWORD_MAX 0xffffffffffffffff
 
-#ifndef QWORD
-#define QWORD unsigned long
-#endif
-#ifndef DWORD
-#define DWORD int
-#endif
-#ifndef UDWORD
-#define UDWORD unsigned int
-#endif
-
-#ifdef MUST_SET_MQD_T
-typedef int mqd_t
-#endif
-
 #define RETURN_SUCCESS 1
 #define RETURN_FAILURE 0
 
@@ -44,8 +30,8 @@ typedef int mqd_t
   mq_receive(CHANNEL, (char *)BUFFER, sizeof(profinfo_t), &priority)
 #define WRITE_BINMAGIC(FD)                                                     \
   do {                                                                         \
-    QWORD sntnl = BINFILE_SENTINEL;                                            \
-    write(FD, &sntnl, sizeof(QWORD));                                          \
+    QWORD_prf sntnl = BINFILE_SENTINEL;                                            \
+    write(FD, &sntnl, sizeof(QWORD_prf));                                          \
   } while (0)
 #define YIELD_IF_ERR(...)                                                      \
   if ((yield = __VA_ARGS__) < 0)                                               \

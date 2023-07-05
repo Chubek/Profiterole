@@ -1,12 +1,16 @@
 #ifndef PROFILER_H
 #define PROFILER_H
 
-typedef QWORD sentinel_t;
-typedef QWORD markerid_t;
-typedef QWORD elapsed_t;
-typedef QWORD snl_t;
-typedef DWORD fld_t;
-typedef DWORD yield_t;
+#define QWORD_prf unsigned long
+#define DWORD_prf int
+#define UDWORD unsigned int
+
+typedef QWORD_prf sentinel_t;
+typedef QWORD_prf markerid_t;
+typedef QWORD_prf elapsed_t;
+typedef QWORD_prf snl_t;
+typedef DWORD_prf fld_t;
+typedef DWORD_prf yield_t;
 typedef void nonyield_t;
 
 typedef struct Profiler {
@@ -24,9 +28,9 @@ typedef struct ProfileInfo {
 
 elapsed_t get_elapsed_since(void);
 markerid_t buffer_to_qword(const char *src);
-nonyield_t qword_to_buffer(char *dst, const QWORD src);
+nonyield_t qword_to_buffer(char *dst, const QWORD_prf src);
 
-nonyield_t hash_sentinel(const char *profname, QWORD *sentinelqword,
+nonyield_t hash_sentinel(const char *profname, QWORD_prf *sentinelqword,
                          char *sentinelbytes);
 
 nonyield_t poll_for_profile_and_serialize(profiler_t *prof);

@@ -17,13 +17,13 @@ elapsed_t get_elapsed_since(void) {
   return cputime;
 }
 
-QWORD buffer_to_qword(const char *src) {
-  QWORD qword;
+QWORD_prf buffer_to_qword(const char *src) {
+  QWORD_prf qword;
   asm volatile(ASM_BUF2QW : "=r"(qword) : "r"(src) : CLB_IDQWRD);
   return qword;
 }
 
-nonyield_t qword_to_buffer(char *dst, const QWORD src) {
+nonyield_t qword_to_buffer(char *dst, const QWORD_prf src) {
   asm volatile(ASM_QW2BUF : "=r"(dst) : "r"(src));
 }
 
@@ -35,26 +35,26 @@ elapsed_t get_elapsed_since(void) {
   return proctime.tms_utime;
 }
 
-QWORD buffer_to_qword(const char *src) {
-  QWORD qword = 0;
-  MEMCOPYFN(&qword, src, sizeof(QWORD));
+QWORD_prf buffer_to_qword(const char *src) {
+  QWORD_prf qword = 0;
+  MEMCOPYFN(&qword, src, sizeof(QWORD_prf));
   return qword;
 }
 
-nonyield_t qword_to_buffer(char *dst, const QWORD src) {
-  MEMCOPYFN(dst, &src, sizeof(QWORD));
+nonyield_t qword_to_buffer(char *dst, const QWORD_prf src) {
+  MEMCOPYFN(dst, &src, sizeof(QWORD_prf));
 }
 
 #endif
 
-nonyield_t hash_sentinel(const char *profname, QWORD *sentinelqword,
+nonyield_t hash_sentinel(const char *profname, QWORD_prf *sentinelqword,
                          char *sentinelbytes) {
   char c;
   const char *profnamecpy = profname;
   sentinel_t sentinel = 0;
 
   while ((c = *profname++) &&
-         (((QWORD)(profname - profnamecpy)) <= sizeof(QWORD)))
+         (((QWORD_prf)(profname - profnamecpy)) <= sizeof(QWORD_prf)))
     sentinel = ((sentinel << 5) * sentinel) + c;
 
   *sentinelqword = sentinel;
@@ -62,7 +62,7 @@ nonyield_t hash_sentinel(const char *profname, QWORD *sentinelqword,
 }
 
 nonyield_t poll_for_profile_and_serialize(profiler_t *prof) {
-  UDWORD priority = 0;
+  UDWORD_prf priority = 0;
   ssize_t rcvlen = 0;
   profinfo_t pinfo = (profinfo_t){0};
   WRITE_BINMAGIC(prof->serialoutfd);
@@ -79,8 +79,8 @@ nonyield_t poll_for_profile_and_serialize(profiler_t *prof) {
 }
 
 nonyield_t poll_for_info_and_profile(profiler_t *prof) {
-  UDWORD priority = 0;
-  QWORD bitmask = 0;
+  UDWORD_prf priority = 0;
+  QWORD_prf bitmask = 0;
   ssize_t rcvlen = 0;
   profinfo_t pinfo = (profinfo_t){0};
   elapsed_t curlapse = 0, prvlapse = 0;
@@ -126,7 +126,7 @@ yield_t init_profiler(profiler_t *prof, const char *profname,
 
 yield_t queue_message_to_profiler(profiler_t *prof, const char *markerid) {
   yield_t yield;
-  UDWORD priority = 0;
+  UDWORD_prf priority = 0;
   markerid_t qwdid = buffer_to_qword(markerid);
   profinfo_t pinfo = (profinfo_t){.id = qwdid};
   YIELD_IF_ERR(SEND_MESSAGE(prof->relegatemq, &pinfo));
