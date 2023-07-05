@@ -12,6 +12,7 @@ elif [[ $1 == -rm ]]; then
 	rm -f ltmain.sh
 	rm -f configure~
 	rm -f configure.ac~
+	rm -f profiterole/config.h.in
 	rm -rf autom4te.cache
 	rm -rf build
 	rm -rf pyprofiterole.egg-info
@@ -19,6 +20,7 @@ elif [[ $1 == -rm ]]; then
 	exit;
 fi
 
+autoheader
 libtoolize
 aclocal
 automake
