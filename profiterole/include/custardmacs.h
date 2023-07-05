@@ -30,7 +30,7 @@ typedef int mqd_t
   (rcvlen = RECEIVE_MESSAGE(prof->relegatemq, &pinfo)) == sizeof(profinfo_t)
 #define TERM_REQUESTED (pinfo.id == prof->sentinel)
 
-#if !defined(WANT_ASM_FUNCS) && defined(WANT_MEMCPY)
+#if WANT_ASM_FUNCS == 0 && WANT_MEMCPY == 1
 #define MEMCOPYFN memcpy
 #elif CUST_MEMCPYFN
 #define MEMCOPYFN CUST_MEMCPYFN
@@ -51,18 +51,18 @@ typedef int mqd_t
   if ((yield = __VA_ARGS__) < 0)                                               \
   return yield
 
-#if defined(__amd64__) && defined(WANT_ASM_FUNCS)
+#if defined(__amd64__) && WANT_ASM_FUNCS == 1
 #define ASM_ELAPSE "rdtsc; movq %%rax, %0; shlq $32, %0; orq %%rdx, %0;"
 #define ASM_BUF2QW "movq (%1), %%r11; movq %%r11, %0"
 #define ASM_QW2BUF "movq %1, (%0);"
 #define CLB_ELAPSE "rax", "rdx"
 #define CLB_IDQWRD "r11"
-#elif defined(__aarch64__) && defined(WANT_ASM_FUNCS)
+#elif defined(__aarch64__) && WANT_ASM_FUNCS == 1
 #define ASM_ELAPSE "mrs %0, cntvct_el0;"
 #define ASM_BUF2QW "ldr %0, [%1];"
 #define ADM_QW2BUF "str %0, [%1];"
 #define CLB_ELAPSE "xzr"
 #define CLB_IDQWRD "xzr"
-#elif (!defined(__amd64__) && !defined(__aarch64__)) && defined(WANT_ASM_FUNCS)
+#elif (!defined(__amd64__) && !defined(__aarch64__)) && WANT_ASM_FUNCS == 1
 #error "Neither an Intel/AMD or ARM64 CPU macro detected, please disable ENABLE_ASM_FUNCS"
 #endif
