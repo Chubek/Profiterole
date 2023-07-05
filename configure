@@ -17846,51 +17846,6 @@ ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
-as_ac_Lib=`printf "%s\n" "ac_cv_lib_rt_as_fn_error $? "librt must be provided" "$LINENO" 5" | $as_tr_sh`
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for as_fn_error $? \"librt must be provided\" \"$LINENO\" 5 in -lrt" >&5
-printf %s "checking for as_fn_error $? \"librt must be provided\" \"$LINENO\" 5 in -lrt... " >&6; }
-if eval test \${$as_ac_Lib+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lrt  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-char as_fn_error $? "librt must be provided" "$LINENO" 5 ();
-int
-main (void)
-{
-return as_fn_error $? "librt must be provided" "$LINENO" 5 ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"
-then :
-  eval "$as_ac_Lib=yes"
-else $as_nop
-  eval "$as_ac_Lib=no"
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.beam \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-eval ac_res=\$$as_ac_Lib
-	       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
-printf "%s\n" "$ac_res" >&6; }
-if eval test \"x\$"$as_ac_Lib"\" = x"yes"
-then :
-  printf "%s\n" "#define HAVE_LIBRT 1" >>confdefs.h
-
-  LIBS="-lrt $LIBS"
-
-fi
-
 
 ac_fn_c_check_type "$LINENO" "ssize_t size_t pid_t mqd_t" "ac_cv_type_ssize_t_size_t_pid_t_mqd_t" "$ac_includes_default"
 if test "x$ac_cv_type_ssize_t_size_t_pid_t_mqd_t" = xyes
@@ -17933,6 +17888,51 @@ printf "%s\n" "$ac_cv_sizeof_unsigned_long" >&6; }
 
 printf "%s\n" "#define SIZEOF_UNSIGNED_LONG $ac_cv_sizeof_unsigned_long" >>confdefs.h
 
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for mq_open in -lrt" >&5
+printf %s "checking for mq_open in -lrt... " >&6; }
+if test ${ac_cv_lib_rt_mq_open+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lrt  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+char mq_open ();
+int
+main (void)
+{
+return mq_open ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  ac_cv_lib_rt_mq_open=yes
+else $as_nop
+  ac_cv_lib_rt_mq_open=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_rt_mq_open" >&5
+printf "%s\n" "$ac_cv_lib_rt_mq_open" >&6; }
+if test "x$ac_cv_lib_rt_mq_open" = xyes
+then :
+  printf "%s\n" "#define HAVE_LIBRT 1" >>confdefs.h
+
+  LIBS="-lrt $LIBS"
+
+else $as_nop
+  as_fn_error $? "librt must be provided for mq_open" "$LINENO" 5
+fi
 
 # Check whether --enable-memcpy was given.
 if test ${enable_memcpy+y}

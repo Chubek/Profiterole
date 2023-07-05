@@ -8,10 +8,10 @@ LT_INIT([shared])
 AC_LANG([C])
 AC_PROG_CC
 AC_PROG_CXX
-AC_CHECK_LIB([rt], AC_MSG_ERROR([librt must be provided]))
 AC_CHECK_INCLUDES_DEFAULT
 AC_CHECK_TYPES([ssize_t size_t pid_t mqd_t])
 AC_CHECK_SIZEOF([unsigned long])
+AC_CHECK_LIB([rt], [mq_open], [], [AC_MSG_ERROR([librt must be provided for mq_open])], [])
 AC_ARG_ENABLE([memcpy],
 		[AS_HELP_STRING(
 			[--enable-memcpy],
