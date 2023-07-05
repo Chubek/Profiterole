@@ -16,13 +16,3 @@ dist
 m4
 *log
 Makefile
-aclocal.m4
-compile
-config.guess
-config.status
-config.sub
-depcomp
-libtool
-ltmain.sh
-Makefile.in
-missing
