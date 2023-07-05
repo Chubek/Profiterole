@@ -3,7 +3,7 @@
 
 #define QWORD_prf unsigned long
 #define DWORD_prf int
-#define UDWORD unsigned int
+#define UDWORD_prf unsigned int
 
 typedef QWORD_prf sentinel_t;
 typedef QWORD_prf markerid_t;
