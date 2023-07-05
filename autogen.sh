@@ -19,6 +19,7 @@ elif [[ $1 == -rm ]]; then
 	rm -f compile
 	rm -f Makefile
 	rm -f install-sh
+	rm -f Makefile.in
 	rm -f config.log
 	rm -f config.status
 	rm -f libtool

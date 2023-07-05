@@ -1,6 +1,6 @@
 AC_INIT([profiterole],[1.0],[chubakbidpaa@gmail.om])
-AC_CONFIG_MACRO_DIRS([m4])
 AC_CONFIG_SRCDIR([profiterole/config.h])
+AC_CONFIG_MACRO_DIRS([m4])
 AC_CONFIG_HEADERS([profiterole/config.h])
 AC_CONFIG_FILES([Makefile])
 AM_INIT_AUTOMAKE([foreign])

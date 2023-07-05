@@ -1,10 +1,9 @@
 AUTOMAKE_OPTIONS = subdir-objects
-LDADD = $(LIBOBJS) $(ALLOCA)
-AM_CCFLAGS = $(all_includes)
+AM_CCFLAGS = -I$(srcdir)/include
+AM_CPPFLAGS = -I$(srcdir)/include
 ACLOCAL_AMFLAGS = -I m4
 
 lib_LTLIBRARIES = libprofiterole.la
-
 libprofiterole_la_LDFLAGS = -lrt
-libprofiterole_la_SOURCES = $(srcdir)/include/custardmacs.h $(srcdir)/include/profiterole.h $(srcdir)/src/profiterole.c
-
+libprofiterole_la_SOURCES = $(srcdir)/src/profiterole.c
+include_HEADERS = $(srcdir)/include/profiterole.h
