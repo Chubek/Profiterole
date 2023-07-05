@@ -9,7 +9,6 @@ env*/
 venv*/
 pyenv*/
 *dump
-missing
 *cache
 dist
 *.egg-info/
